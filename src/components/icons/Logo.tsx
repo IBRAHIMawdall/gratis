@@ -12,11 +12,9 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
             <stop offset="100%" stopColor="hsl(var(--accent))" />
         </linearGradient>
     </defs>
-    
-    {/* Abstract G Shape */}
     <path 
-        d="M128 24C68.5 24 24 68.5 24 128C24 187.5 68.5 232 128 232C154.3 232 178.5 223.7 197.8 209.1L150 128H192C192 72.8 155.2 32 100 32C86.8 32 74.5 35.3 64 41.2C79.8 30.3 102.7 24 128 24Z" 
-        fill="url(#logoGradient)" 
+        fill="url(#logoGradient)"
+        d="M128,24C68.5,24,24,68.5,24,128s44.5,104,104,104c59.5,0,104-44.5,104-104S187.5,24,128,24z M184,128h-56 c0-30.9,25.1-56,56-56C184,87.7,184,107.4,184,128z"
     />
  </svg>
 );
