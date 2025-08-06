@@ -9,6 +9,7 @@ type ResultsListProps = {
   favorites: FreeItem[];
   isLoading: boolean;
   onToggleFavorite: (item: FreeItem) => void;
+  onItemHover: (id: string | null) => void;
 };
 
 const ResultsList: React.FC<ResultsListProps> = ({
@@ -16,11 +17,12 @@ const ResultsList: React.FC<ResultsListProps> = ({
   favorites,
   isLoading,
   onToggleFavorite,
+  onItemHover,
 }) => {
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        {[...Array(5)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[...Array(6)].map((_, i) => (
           <ResultCardSkeleton key={i} />
         ))}
       </div>
@@ -38,14 +40,19 @@ const ResultsList: React.FC<ResultsListProps> = ({
   }
 
   return (
-    <div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {results.map((item) => (
-        <SearchResult
-          key={item.id}
-          item={item}
-          isFavorite={favorites.some((fav) => fav.id === item.id)}
-          onToggleFavorite={() => onToggleFavorite(item)}
-        />
+        <div
+            key={item.id}
+            onMouseEnter={() => onItemHover(item.id)}
+            onMouseLeave={() => onItemHover(null)}
+        >
+            <SearchResult
+              item={item}
+              isFavorite={favorites.some((fav) => fav.id === item.id)}
+              onToggleFavorite={() => onToggleFavorite(item)}
+            />
+        </div>
       ))}
     </div>
   );

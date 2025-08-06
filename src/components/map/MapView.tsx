@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 type MapViewProps = {
   items: FreeItem[];
   favorites: FreeItem[];
+  hoveredItemId: string | null;
 };
 
 // Bounding box for UAE
@@ -16,7 +17,7 @@ const latMax = 26.1;
 const lngMin = 51.6;
 const lngMax = 56.4;
 
-const MapView: React.FC<MapViewProps> = ({ items, favorites }) => {
+const MapView: React.FC<MapViewProps> = ({ items, favorites, hoveredItemId }) => {
   const allItems = [...items, ...favorites];
   const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
   
@@ -35,22 +36,20 @@ const MapView: React.FC<MapViewProps> = ({ items, favorites }) => {
                 backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'hsl(var(--muted-foreground))\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
             }}
         />
-        <div className="absolute inset-0 flex items-center justify-center">
-            <p className="font-headline text-2xl text-gray-400 select-none">Map View</p>
-        </div>
 
         {uniqueItems.map((item) => {
           const isFavorite = favorites.some(fav => fav.id === item.id);
+          const isHovered = item.id === hoveredItemId;
           const { top, left } = getPosition(item.coordinates.lat, item.coordinates.lng);
           return (
-            <Tooltip key={item.id}>
+            <Tooltip key={item.id} open={isHovered}>
               <TooltipTrigger asChild>
                 <div
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                  style={{ top, left }}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-300"
+                  style={{ top, left, transform: `translate(-50%, -50%) scale(${isHovered ? 1.5 : 1})` }}
                 >
                   {isFavorite ? (
-                     <Star className="h-6 w-6 text-yellow-500 fill-yellow-500 animate-pulse" />
+                     <Star className="h-6 w-6 text-yellow-500 fill-yellow-500 stroke-yellow-600 stroke-1" />
                   ) : (
                     <MapPin className="h-6 w-6 text-blue-600 fill-blue-600/70" />
                   )}

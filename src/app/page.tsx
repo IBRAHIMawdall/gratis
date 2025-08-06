@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useMemo } from "react";
 import { FreeItem } from "@/lib/types";
 import { performSearch } from "@/app/actions";
 import SearchForm from "@/components/forms/SearchForm";
 import ResultsList from "@/components/search/ResultsList";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
 import { FavoritesSheet } from "@/components/favorites/FavoritesSheet";
+import MapView from "@/components/map/MapView";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Home() {
   const [results, setResults] = useState<FreeItem[] | null>(null);
@@ -16,6 +16,8 @@ export default function Home() {
   const [isSearching, startSearchTransition] = useTransition();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState<{ description: string; location: string } | null>(null);
+  const [sortBy, setSortBy] = useState("relevance");
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   const handleSearch = (data: { description: string; location: string }) => {
     setSearchQuery(data);
@@ -56,6 +58,20 @@ export default function Home() {
     setSearchQuery(null);
   }
 
+  const sortedResults = useMemo(() => {
+    if (!results) return [];
+    return [...results].sort((a, b) => {
+      if (sortBy === 'az') {
+        return a.title.localeCompare(b.title);
+      }
+      if (sortBy === 'za') {
+        return b.title.localeCompare(a.title);
+      }
+      // "relevance" is default
+      return 0;
+    });
+  }, [results, sortBy]);
+
   return (
     <div className="flex flex-col h-full bg-white text-[#202124]">
       {results === null ? (
@@ -83,18 +99,36 @@ export default function Home() {
                 </div>
                 <FavoritesSheet favorites={favorites} onToggleFavorite={toggleFavorite} />
             </header>
-            <main className="flex-1 p-6 overflow-y-auto">
-                <div className="max-w-4xl mx-auto">
-                    <p className="text-sm text-gray-600 mb-4">
-                        {`Showing results for "${searchQuery?.description}" near "${searchQuery?.location}"`}
+            <main className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 p-6 overflow-hidden">
+              <div className="lg:col-span-3 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm text-gray-600">
+                      {`Showing results for "${searchQuery?.description}" near "${searchQuery?.location}"`}
                     </p>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="relevance">Relevance</SelectItem>
+                            <SelectItem value="az">A-Z</SelectItem>
+                            <SelectItem value="za">Z-A</SelectItem>
+                        </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1 overflow-y-auto pr-2">
                     <ResultsList
-                        results={results}
+                        results={sortedResults}
                         favorites={favorites}
                         isLoading={isSearching}
                         onToggleFavorite={toggleFavorite}
+                        onItemHover={setHoveredItemId}
                     />
-                </div>
+                  </div>
+              </div>
+              <aside className="hidden lg:block lg:col-span-2 rounded-lg overflow-hidden h-full">
+                <MapView items={sortedResults} favorites={favorites} hoveredItemId={hoveredItemId} />
+              </aside>
             </main>
         </>
       )}

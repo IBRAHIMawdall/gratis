@@ -10,6 +10,7 @@ export const mockFreeItems: FreeItem[] = [
     source: 'Community Arts Center',
     sourceUrl: '#',
     coordinates: { lat: 25.2048, lng: 55.2708 },
+    imageUrl: 'https://placehold.co/600x400.png',
   },
   {
     id: '2',
@@ -20,6 +21,7 @@ export const mockFreeItems: FreeItem[] = [
     source: 'Cultural Foundation',
     sourceUrl: '#',
     coordinates: { lat: 24.485, lng: 54.367 },
+    imageUrl: 'https://placehold.co/600x400.png',
   },
   {
     id: '3',
@@ -30,6 +32,7 @@ export const mockFreeItems: FreeItem[] = [
     source: 'Public Library',
     sourceUrl: '#',
     coordinates: { lat: 25.3373, lng: 55.392 },
+    imageUrl: 'https://placehold.co/600x400.png',
   },
   {
     id: '4',
@@ -40,6 +43,7 @@ export const mockFreeItems: FreeItem[] = [
     source: 'Wellness Community UAE',
     sourceUrl: '#',
     coordinates: { lat: 25.1706, lng: 55.2073 },
+    imageUrl: 'https://placehold.co/600x400.png',
   },
   {
     id: '5',
@@ -50,6 +54,7 @@ export const mockFreeItems: FreeItem[] = [
     source: 'Expat Woman Forum',
     sourceUrl: '#',
     coordinates: { lat: 24.4669, lng: 54.3853 },
+    imageUrl: 'https://placehold.co/600x400.png',
   },
   {
     id: '6',
@@ -59,6 +64,7 @@ export const mockFreeItems: FreeItem[] = [
     source: 'Dubizzle',
     sourceUrl: '#',
     coordinates: { lat: 24.2075, lng: 55.7447 },
+    imageUrl: 'https://placehold.co/600x400.png',
   },
     {
     id: '7',
@@ -68,5 +74,6 @@ export const mockFreeItems: FreeItem[] = [
     source: 'Sustainable Living Group',
     sourceUrl: '#',
     coordinates: { lat: 24.4336, lng: 54.6182 },
+    imageUrl: 'https://placehold.co/600x400.png',
   },
 ];

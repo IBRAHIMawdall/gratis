@@ -9,4 +9,5 @@ export type FreeItem = {
     lat: number;
     lng: number;
   };
+  imageUrl?: string;
 };
