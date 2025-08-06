@@ -14,15 +14,18 @@ import { ScrollArea } from "../ui/scroll-area"
 type FavoritesSheetProps = {
     favorites: FreeItem[];
     onToggleFavorite: (item: FreeItem) => void;
+    strings: {
+        favorites: string;
+    }
 };
 
-export function FavoritesSheet({ favorites, onToggleFavorite }: FavoritesSheetProps) {
+export function FavoritesSheet({ favorites, onToggleFavorite, strings }: FavoritesSheetProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="outline">
             <Star className="mr-2 h-4 w-4" />
-            Favorites ({favorites.length})
+            {strings.favorites} ({favorites.length})
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:w-[540px] flex flex-col">

@@ -5,6 +5,7 @@ import { generateSearchQuery } from "@/ai/flows/generate-search-query";
 import { summarizeItemDetails } from "@/ai/flows/summarize-item-details";
 import { mockFreeItems } from "@/lib/data";
 import { FreeItem } from "@/lib/types";
+import { translateText as translateTextFlow } from "@/ai/flows/translate-text";
 
 const searchSchema = z.object({
   description: z.string().min(3, "Please describe what you're looking for."),
@@ -49,4 +50,23 @@ export async function performSearch(data: { description: string; location: strin
     console.error("An error occurred during search:", error);
     return { error: "An unexpected error occurred. Please try again." };
   }
+}
+
+const translateSchema = z.object({
+    text: z.string(),
+    targetLanguage: z.string(),
+});
+
+export async function translateText(data: { text: string, targetLanguage: string }): Promise<{ translatedText?: string, error?: string}> {
+    const validation = translateSchema.safeParse(data);
+    if (!validation.success) {
+        return { error: "Invalid input for translation." };
+    }
+    try {
+        const { translatedText } = await translateTextFlow(data);
+        return { translatedText };
+    } catch (error) {
+        console.error("Translation error", error);
+        return { error: "Failed to translate text." };
+    }
 }

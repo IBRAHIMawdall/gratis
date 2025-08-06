@@ -27,9 +27,14 @@ type SearchFormProps = {
   onSearch: (values: z.infer<typeof formSchema>) => void;
   isSearching: boolean;
   initialValues?: z.infer<typeof formSchema>;
+  strings: {
+    placeholder: string;
+    searchButton: string;
+    feelingLucky: string;
+  }
 };
 
-export default function SearchForm({ onSearch, isSearching, initialValues }: SearchFormProps) {
+export default function SearchForm({ onSearch, isSearching, initialValues, strings }: SearchFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialValues || {
@@ -51,7 +56,7 @@ export default function SearchForm({ onSearch, isSearching, initialValues }: Sea
                 <FormItem>
                   <FormControl>
                     <Input 
-                      placeholder="Search for free items or services" 
+                      placeholder={strings.placeholder} 
                       {...field} 
                       className="rounded-full h-12 pr-12 text-base"
                     />
@@ -80,7 +85,7 @@ export default function SearchForm({ onSearch, isSearching, initialValues }: Sea
                 <FormItem className="flex-grow">
                   <FormControl>
                     <Input
-                      placeholder="e.g., a free couch, guitar lessons"
+                      placeholder={strings.placeholder}
                       {...field}
                       className="rounded-full h-12 pl-12 pr-4 text-base shadow-md focus-visible:ring-blue-500"
                     />
@@ -114,10 +119,10 @@ export default function SearchForm({ onSearch, isSearching, initialValues }: Sea
               {isSearching ? (
                 <Loader2 className="animate-spin" />
               ) : (
-                "Search"
+                strings.searchButton
               )}
             </Button>
-             <Button type="button" variant="ghost" className="text-gray-700 hover:bg-gray-100">I'm Feeling Lucky</Button>
+             <Button type="button" variant="ghost" className="text-gray-700 hover:bg-gray-100">{strings.feelingLucky}</Button>
           </div>
         </form>
       </Form>
