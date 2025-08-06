@@ -44,7 +44,7 @@ const defaultStrings: TranslatedStrings = {
 };
 
 export default function Home() {
-  const [results, setResults] = useState<FreeItem[] | null>(null);
+  const [results, setResults] = useState<FreeItem[] | undefined>(undefined);
   const [favorites, setFavorites] = useState<FreeItem[]>([]);
   const [isSearching, startSearchTransition] = useTransition();
   const { toast } = useToast();
@@ -131,14 +131,16 @@ export default function Home() {
           setResults([]);
         } else {
             const items = searchResult.items || [];
-            const finalResults = await translateResults(items, language);
-            setResults(finalResults);
             if (items.length === 0) {
-            toast({
-              title: translatedStrings.noResultsTitle,
-              description: translatedStrings.noResultsDescription,
-            });
-          }
+              setResults([]);
+              toast({
+                title: translatedStrings.noResultsTitle,
+                description: translatedStrings.noResultsDescription,
+              });
+            } else {
+              const finalResults = await translateResults(items, language);
+              setResults(finalResults);
+            }
         }
       } else {
          // Re-translate existing results
@@ -160,7 +162,7 @@ export default function Home() {
   };
   
   const handleNewSearch = () => {
-    setResults(null);
+    setResults(undefined);
     setSearchQuery(null);
   }
 
@@ -183,10 +185,9 @@ export default function Home() {
         .replace('{location}', searchQuery.location)
     : '';
 
-  return (
-    <div className="flex flex-col h-full bg-white text-[#202124]">
-      {results === null ? (
-         <main className="flex flex-col items-center justify-center flex-grow">
+  if (results === undefined) {
+    return (
+        <main className="flex flex-col items-center justify-center flex-grow">
             <h1 className="text-8xl font-bold mb-8">
                 <span className="text-[#4285F4]">G</span>
                 <span className="text-[#DB4437]">r</span>
@@ -195,9 +196,13 @@ export default function Home() {
                 <span className="text-[#0F9D58]">i</span>
                 <span className="text-[#DB4437]">s</span>
             </h1>
-           <SearchForm onSearch={(data) => handleSearch(data)} isSearching={isSearching || isTranslating} strings={translatedStrings} />
-         </main>
-      ) : (
+          <SearchForm onSearch={(data) => handleSearch(data)} isSearching={isSearching || isTranslating} strings={translatedStrings} />
+        </main>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-white text-[#202124]">
         <>
             <header className="flex items-center justify-between p-4 border-b border-gray-200">
                 <div className="flex items-center gap-4">
@@ -251,7 +256,6 @@ export default function Home() {
               </aside>
             </main>
         </>
-      )}
     </div>
   );
 }
