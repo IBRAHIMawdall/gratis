@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useTransition, useMemo, useEffect } from "react";
@@ -7,9 +8,10 @@ import SearchForm from "@/components/forms/SearchForm";
 import ResultsList from "@/components/search/ResultsList";
 import { useToast } from "@/hooks/use-toast";
 import { FavoritesSheet } from "@/components/favorites/FavoritesSheet";
-import MapView from "@/components/map/MapView";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LanguageSelector from "@/components/LanguageSelector";
+import Logo from "@/components/icons/Logo";
+import { Button } from "@/components/ui/button";
 
 type TranslatedStrings = {
   placeholder: string;
@@ -25,32 +27,33 @@ type TranslatedStrings = {
   noResultsDescription: string;
   searchFailedTitle: string;
   newSearch: string;
+  searchPrompt: string;
 };
 
 const defaultStrings: TranslatedStrings = {
-    placeholder: "Search for free items or services",
+    placeholder: "Used furniture, workshop...",
     searchButton: "Search",
     feelingLucky: "I'm Feeling Lucky",
     favorites: "Favorites",
-    showingResults: 'Showing results for "{description}" near "{location}"',
+    showingResults: 'Showing results for "{description}"',
     sortBy: "Sort by",
     relevance: "Relevance",
     az: "A-Z",
     za: "Z-A",
-    noResultsTitle: "No Results",
-    noResultsDescription: "We couldn't find any free items matching your search.",
+    noResultsTitle: "No Results Found",
+    noResultsDescription: "Try a different search to find free items and services near you.",
     searchFailedTitle: "Search Failed",
     newSearch: "Gratis",
+    searchPrompt: "What can we help you find today?",
 };
 
 export default function Home() {
-  const [results, setResults] = useState<FreeItem[] | undefined>(undefined);
+  const [results, setResults] = useState<FreeItem[] | null>(null);
   const [favorites, setFavorites] = useState<FreeItem[]>([]);
   const [isSearching, startSearchTransition] = useTransition();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState<{ description: string; location: string } | null>(null);
   const [sortBy, setSortBy] = useState("relevance");
-  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [language, setLanguage] = useState("en");
   const [translatedStrings, setTranslatedStrings] = useState<TranslatedStrings>(defaultStrings);
   const [isTranslating, startTranslation] = useTransition();
@@ -69,7 +72,8 @@ export default function Home() {
             const keysToTranslate: (keyof TranslatedStrings)[] = [
                 'placeholder', 'searchButton', 'feelingLucky', 'favorites', 
                 'showingResults', 'sortBy', 'relevance', 'az', 'za', 
-                'noResultsTitle', 'noResultsDescription', 'searchFailedTitle', 'newSearch'
+                'noResultsTitle', 'noResultsDescription', 'searchFailedTitle', 'newSearch',
+                'searchPrompt'
             ];
 
             const translations = await Promise.all(
@@ -94,11 +98,11 @@ export default function Home() {
     };
 
     translateUI();
-  }, [language]);
+  }, [language, results, searchQuery]);
 
 
   const translateResults = async (items: FreeItem[], lang: string): Promise<FreeItem[]> => {
-    if (lang === 'en') return items; // Return original if English
+    if (lang === 'en') return items;
     return Promise.all(
         items.map(async (item) => {
             const [translatedTitle, translatedDescription] = await Promise.all([
@@ -118,8 +122,6 @@ export default function Home() {
   const handleSearch = (data: { description: string; location: string }, fromTranslation: boolean = false) => {
     setSearchQuery(data);
     startSearchTransition(async () => {
-      // Only perform search if it's not from a translation call
-      // or if there are no results yet.
       if (!fromTranslation || !results) {
         const searchResult = await performSearch(data);
         if (searchResult.error) {
@@ -133,17 +135,12 @@ export default function Home() {
             const items = searchResult.items || [];
             if (items.length === 0) {
               setResults([]);
-              toast({
-                title: translatedStrings.noResultsTitle,
-                description: translatedStrings.noResultsDescription,
-              });
             } else {
               const finalResults = await translateResults(items, language);
               setResults(finalResults);
             }
         }
-      } else {
-         // Re-translate existing results
+      } else if (results) {
          const finalResults = await translateResults(results, language);
          setResults(finalResults);
       }
@@ -161,11 +158,6 @@ export default function Home() {
     });
   };
   
-  const handleNewSearch = () => {
-    setResults(undefined);
-    setSearchQuery(null);
-  }
-
   const sortedResults = useMemo(() => {
     if (!results) return [];
     return [...results].sort((a, b) => {
@@ -182,34 +174,20 @@ export default function Home() {
   const displaySearchQuery = searchQuery 
     ? translatedStrings.showingResults
         .replace('{description}', searchQuery.description)
-        .replace('{location}', searchQuery.location)
     : '';
 
-  if (results === undefined) {
-    return (
-        <main className="flex flex-col items-center justify-center flex-grow">
-            <h1 className="text-8xl font-bold mb-8">
-                <span className="text-[#4285F4]">G</span>
-                <span className="text-[#DB4437]">r</span>
-                <span className="text-[#F4B400]">a</span>
-                <span className="text-[#4285F4]">t</span>
-                <span className="text-[#0F9D58]">i</span>
-                <span className="text-[#DB4437]">s</span>
-            </h1>
-          <SearchForm onSearch={(data) => handleSearch(data)} isSearching={isSearching || isTranslating} strings={translatedStrings} />
-        </main>
-    );
-  }
-
   return (
-    <div className="flex flex-col h-full bg-white text-[#202124]">
-        <>
-            <header className="flex items-center justify-between p-4 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-bold text-[#4285F4] cursor-pointer" onClick={handleNewSearch}>
+    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
+        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-sm border-b border-gray-200">
+            <div className="container mx-auto flex items-center justify-between p-4">
+                <div className="flex items-center gap-2">
+                    <Logo className="h-8 w-8 text-blue-600" />
+                    <span className="text-xl font-bold text-gray-800">
                         {translatedStrings.newSearch}
-                    </h1>
-                    <div className="w-[700px]">
+                    </span>
+                </div>
+                {results !== null && (
+                    <div className="w-full max-w-md">
                         <SearchForm 
                             onSearch={(data) => handleSearch(data)} 
                             isSearching={isSearching || isTranslating} 
@@ -217,45 +195,53 @@ export default function Home() {
                             strings={translatedStrings}
                         />
                     </div>
-                </div>
+                )}
                 <div className="flex items-center gap-4">
                     <FavoritesSheet favorites={favorites} onToggleFavorite={toggleFavorite} strings={translatedStrings} />
                     <LanguageSelector onLanguageChange={setLanguage} />
                 </div>
-            </header>
-            <main className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 p-6 overflow-hidden">
-              <div className="lg:col-span-3 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-gray-600">
-                        {displaySearchQuery}
-                    </p>
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder={translatedStrings.sortBy} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="relevance">{translatedStrings.relevance}</SelectItem>
-                            <SelectItem value="az">{translatedStrings.az}</SelectItem>
-                            <SelectItem value="za">{translatedStrings.za}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex-1 overflow-y-auto pr-2">
+            </div>
+        </header>
+        
+        <main className="flex-1 w-full container mx-auto p-6">
+            {results === null ? (
+                 <div className="flex flex-col items-center justify-center text-center h-full max-w-2xl mx-auto pt-20">
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">{translatedStrings.searchPrompt}</h1>
+                    <div className="w-full">
+                        <SearchForm onSearch={(data) => handleSearch(data)} isSearching={isSearching || isTranslating} strings={translatedStrings} />
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="flex items-center justify-between mb-6">
+                        <p className="text-lg text-gray-600">
+                            {displaySearchQuery} ({sortedResults.length})
+                        </p>
+                        <div className="flex items-center gap-4">
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger className="w-[180px] bg-white">
+                                    <SelectValue placeholder={translatedStrings.sortBy} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="relevance">{translatedStrings.relevance}</SelectItem>
+                                    <SelectItem value="az">{translatedStrings.az}</SelectItem>
+                                    <SelectItem value="za">{translatedStrings.za}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Button variant="outline" onClick={() => setResults(null)}>New Search</Button>
+                        </div>
+                    </div>
                     <ResultsList
                         results={sortedResults}
                         favorites={favorites}
                         isLoading={isSearching || isTranslating}
                         onToggleFavorite={toggleFavorite}
-                        onItemHover={setHoveredItemId}
+                        onItemHover={() => {}}
                         strings={translatedStrings}
                     />
-                  </div>
-              </div>
-              <aside className="hidden lg:block lg:col-span-2 rounded-lg overflow-hidden h-full">
-                <MapView items={sortedResults} favorites={favorites} hoveredItemId={hoveredItemId} />
-              </aside>
-            </main>
-        </>
+                </>
+            )}
+        </main>
     </div>
   );
 }

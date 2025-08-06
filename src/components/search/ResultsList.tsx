@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FreeItem } from '@/lib/types';
 import SearchResult from './ResultCard';
@@ -24,10 +25,12 @@ const ResultsList: React.FC<ResultsListProps> = ({
   onItemHover,
   strings
 }) => {
+  const grid_template = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6";
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[...Array(6)].map((_, i) => (
+      <div className={grid_template}>
+        {[...Array(8)].map((_, i) => (
           <ResultCardSkeleton key={i} />
         ))}
       </div>
@@ -36,16 +39,16 @@ const ResultsList: React.FC<ResultsListProps> = ({
 
   if (results.length === 0 && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8">
-        <Inbox className="w-16 h-16 text-gray-300 mb-4" />
+      <div className="flex flex-col items-center justify-center text-center p-16 border-2 border-dashed rounded-lg mt-8">
+        <Inbox className="w-16 h-16 text-gray-400 mb-4" />
         <h3 className="text-2xl font-semibold text-gray-700">{strings.noResultsTitle}</h3>
-        <p className="text-gray-500">{strings.noResultsDescription}</p>
+        <p className="text-gray-500 mt-2">{strings.noResultsDescription}</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className={grid_template}>
       {results.map((item) => (
         <div
             key={item.id}

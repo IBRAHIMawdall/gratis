@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,9 +14,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search } from "lucide-react";
+import { MapPin } from 'lucide-react';
 
 const formSchema = z.object({
-  description: z.string().min(3, {
+  description: z.string().min(1, {
     message: "Please describe what you're looking for.",
   }),
   location: z.string().min(3, {
@@ -58,14 +60,14 @@ export default function SearchForm({ onSearch, isSearching, initialValues, strin
                     <Input 
                       placeholder={strings.placeholder} 
                       {...field} 
-                      className="rounded-full h-12 pr-12 text-base"
+                      className="rounded-full h-12 pr-12 text-base bg-white"
                     />
                   </FormControl>
                 </FormItem>
               )}
             />
-             <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-transparent hover:bg-gray-200">
-                <Search className="text-[#4285F4]"/>
+             <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-blue-600 hover:bg-blue-700">
+                <Search className="text-white"/>
             </Button>
           </form>
        </Form>
@@ -73,57 +75,54 @@ export default function SearchForm({ onSearch, isSearching, initialValues, strin
   }
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSearch)} className="space-y-4">
-          <div className="relative flex items-center">
-            <Search className="absolute left-4 text-gray-400" />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="flex-grow">
-                  <FormControl>
-                    <Input
-                      placeholder={strings.placeholder}
-                      {...field}
-                      className="rounded-full h-12 pl-12 pr-4 text-base shadow-md focus-visible:ring-blue-500"
-                    />
-                  </FormControl>
-                  <FormMessage className="pl-4"/>
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="relative flex items-center">
-             <Search className="absolute left-4 text-gray-400" />
-             <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem className="flex-grow">
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., Dubai, UAE"
-                      {...field}
-                      className="rounded-full h-12 pl-12 pr-4 text-base shadow-md focus-visible:ring-blue-500"
-                    />
-                  </FormControl>
-                  <FormMessage className="pl-4" />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="flex justify-center gap-4 pt-2">
-            <Button type="submit" disabled={isSearching} className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-6 py-2 h-10">
-              {isSearching ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                strings.searchButton
-              )}
+          <div className="bg-white rounded-lg shadow-lg p-2 flex items-center gap-2">
+            <div className="relative flex items-center flex-grow">
+              <Search className="absolute left-4 text-gray-400" />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="flex-grow">
+                    <FormControl>
+                      <Input
+                        placeholder={strings.placeholder}
+                        {...field}
+                        className="h-12 pl-12 pr-4 text-base border-0 focus-visible:ring-0 shadow-none"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="relative flex items-center flex-grow border-l">
+              <MapPin className="absolute left-4 text-gray-400" />
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem className="flex-grow">
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Dubai, UAE"
+                        {...field}
+                        className="h-12 pl-12 pr-4 text-base border-0 focus-visible:ring-0 shadow-none"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Button type="submit" disabled={isSearching} className="bg-blue-600 text-white hover:bg-blue-700 px-6 h-12 rounded-md">
+              {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
             </Button>
-             <Button type="button" variant="ghost" className="text-gray-700 hover:bg-gray-100">{strings.feelingLucky}</Button>
           </div>
+           <div className="flex justify-center gap-4 pt-2">
+                <FormMessage>{form.formState.errors.description?.message}</FormMessage>
+                <FormMessage>{form.formState.errors.location?.message}</FormMessage>
+            </div>
         </form>
       </Form>
     </div>
