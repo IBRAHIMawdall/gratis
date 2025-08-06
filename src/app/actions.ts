@@ -6,6 +6,7 @@ import { summarizeItemDetails } from "@/ai/flows/summarize-item-details";
 import { mockFreeItems } from "@/lib/data";
 import { FreeItem } from "@/lib/types";
 import { translateText as translateTextFlow } from "@/ai/flows/translate-text";
+import { suggestItems as suggestItemsFlow } from "@/ai/flows/suggest-items";
 
 const searchSchema = z.object({
   description: z.string().min(3, "Please describe what you're looking for."),
@@ -69,4 +70,38 @@ export async function translateText(data: { text: string, targetLanguage: string
         console.error("Translation error", error);
         return { error: "Failed to translate text." };
     }
+}
+
+export async function getSuggestions(favorites: FreeItem[]): Promise<{ items?: FreeItem[], error?: string }> {
+  try {
+    const simplifiedItems = mockFreeItems.map(({ id, title, description, location }) => ({ id, title, description, location }));
+    const simplifiedFavorites = favorites.map(({ id, title, description, location }) => ({ id, title, description, location }));
+
+    const { suggestedItemIds } = await suggestItemsFlow({
+      items: simplifiedItems,
+      favorites: simplifiedFavorites,
+    });
+
+    if (!suggestedItemIds || suggestedItemIds.length === 0) {
+      return { items: [] };
+    }
+
+    const suggestedItems = mockFreeItems.filter(item => suggestedItemIds.includes(item.id));
+    
+    // Summarize the details for the suggested items
+    const summarizedResults = await Promise.all(
+      suggestedItems.map(async (item) => {
+        const { summary } = await summarizeItemDetails({
+          itemDetails: item.description,
+          sourceUrl: item.sourceUrl,
+        });
+        return { ...item, description: summary };
+      })
+    );
+
+    return { items: summarizedResults };
+  } catch (error) {
+    console.error("An error occurred during suggestions:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
 }

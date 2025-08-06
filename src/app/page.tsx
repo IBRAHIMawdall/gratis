@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition, useMemo, useEffect } from "react";
 import { FreeItem } from "@/lib/types";
-import { performSearch, translateText } from "@/app/actions";
+import { performSearch, translateText, getSuggestions } from "@/app/actions";
 import SearchForm from "@/components/forms/SearchForm";
 import ResultsList from "@/components/search/ResultsList";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import LanguageSelector from "@/components/LanguageSelector";
 import Logo from "@/components/icons/Logo";
 import { Button } from "@/components/ui/button";
+import { Sparkles, Loader2 } from "lucide-react";
 
 type TranslatedStrings = {
   placeholder: string;
@@ -22,17 +23,19 @@ type TranslatedStrings = {
   sortBy: string;
   relevance: string;
   az: string;
-  za: string;
+  za:string;
   noResultsTitle: string;
   noResultsDescription: string;
   searchFailedTitle: string;
   newSearch: string;
   searchPrompt: string;
   sort: string;
+  suggestions: string;
+  showingSuggestions: string;
 };
 
 const defaultStrings: TranslatedStrings = {
-    placeholder: "Search for free items and services...",
+    placeholder: "I'm looking for...",
     searchButton: "Search",
     feelingLucky: "I'm Feeling Lucky",
     favorites: "Favorites",
@@ -47,6 +50,8 @@ const defaultStrings: TranslatedStrings = {
     newSearch: "Gratis",
     searchPrompt: "Find anything, for free.",
     sort: "Sort",
+    suggestions: "Suggest for me",
+    showingSuggestions: "Here are some suggestions for you",
 };
 
 export default function Home() {
@@ -59,6 +64,7 @@ export default function Home() {
   const [language, setLanguage] = useState("en");
   const [translatedStrings, setTranslatedStrings] = useState<TranslatedStrings>(defaultStrings);
   const [isTranslating, startTranslation] = useTransition();
+  const [pageMode, setPageMode] = useState<'search' | 'suggestions'>('search');
 
   useEffect(() => {
     const storedFavorites = localStorage.getItem("favorites");
@@ -70,9 +76,6 @@ export default function Home() {
   useEffect(() => {
     if (language === 'en') {
         setTranslatedStrings(defaultStrings);
-        if(results && searchQuery) {
-            // handleSearch(searchQuery, true); // Avoid re-searching on language change to english
-        }
         return;
     }
 
@@ -82,7 +85,7 @@ export default function Home() {
                 'placeholder', 'searchButton', 'feelingLucky', 'favorites', 
                 'showingResults', 'sortBy', 'relevance', 'az', 'za', 
                 'noResultsTitle', 'noResultsDescription', 'searchFailedTitle', 'newSearch',
-                'searchPrompt', 'sort'
+                'searchPrompt', 'sort', 'suggestions', 'showingSuggestions'
             ];
 
             const translations = await Promise.all(
@@ -111,13 +114,9 @@ export default function Home() {
 
 
   const translateResults = async (items: FreeItem[], lang: string): Promise<FreeItem[]> => {
-    if (lang === 'en') {
-        // This is a simplified re-fetch, in a real app you might want to store original results
-        if(searchQuery){
-            const searchResult = await performSearch(searchQuery);
-            return searchResult.items || [];
-        }
-        return [];
+    if (lang === 'en' && searchQuery) {
+        const searchResult = await performSearch(searchQuery);
+        return searchResult.items || [];
     };
     return Promise.all(
         items.map(async (item) => {
@@ -136,6 +135,7 @@ export default function Home() {
 
   const handleSearch = (data: { description: string; location: string }) => {
     setSearchQuery(data);
+    setPageMode('search');
     startSearchTransition(async () => {
         const searchResult = await performSearch(data);
         if (searchResult.error) {
@@ -157,6 +157,30 @@ export default function Home() {
     });
   };
 
+  const handleSuggest = () => {
+    setSearchQuery(null);
+    setPageMode('suggestions');
+    startSearchTransition(async () => {
+        const suggestionResult = await getSuggestions(favorites);
+        if (suggestionResult.error) {
+            toast({
+                variant: "destructive",
+                title: translatedStrings.searchFailedTitle,
+                description: suggestionResult.error,
+            });
+            setResults([]);
+        } else {
+            const items = suggestionResult.items || [];
+            if (language !== 'en') {
+                const translated = await translateResults(items, language);
+                setResults(translated);
+            } else {
+                setResults(items);
+            }
+        }
+    });
+  };
+
   const toggleFavorite = (item: FreeItem) => {
     setFavorites((prevFavorites) => {
       const isFavorite = prevFavorites.some((fav) => fav.id === item.id);
@@ -173,6 +197,7 @@ export default function Home() {
   
   const sortedResults = useMemo(() => {
     if (!results) return [];
+    if (pageMode === 'suggestions') return results; // Don't sort suggestions
     return [...results].sort((a, b) => {
       if (sortBy === 'az') {
         return a.title.localeCompare(b.title);
@@ -180,82 +205,102 @@ export default function Home() {
       if (sortBy === 'za') {
         return b.title.localeCompare(a.title);
       }
-      return 0;
+      return 0; // relevance
     });
-  }, [results, sortBy]);
+  }, [results, sortBy, pageMode]);
 
-  const displaySearchQuery = searchQuery 
-    ? translatedStrings.showingResults
-        .replace('{description}', searchQuery.description)
+  const displayQuery = pageMode === 'suggestions'
+    ? translatedStrings.showingSuggestions
+    : searchQuery
+    ? translatedStrings.showingResults.replace('{description}', searchQuery.description)
     : '';
 
   const isLoading = isSearching || isTranslating;
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-gray-900">
-        <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm border-b border-gray-200">
-            <div className="container mx-auto flex items-center justify-between p-4 gap-4">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <Logo className="h-8 w-8" />
-                    <span className="text-xl font-bold text-gray-800 hidden sm:inline">
-                        {translatedStrings.newSearch}
-                    </span>
-                </div>
-                
-                <div className="flex-grow max-w-2xl">
-                    <SearchForm 
-                        onSearch={(data) => handleSearch(data)} 
-                        isSearching={isLoading} 
-                        initialValues={searchQuery ?? undefined}
-                        strings={translatedStrings}
-                    />
-                </div>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-sm border-b">
+        <div className="container mx-auto flex items-center justify-between p-4 gap-4">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Logo className="h-8 w-8" />
+            <a href="/" className="text-xl font-bold text-gray-800 hidden sm:inline tracking-tight">
+                {translatedStrings.newSearch}
+            </a>
+          </div>
 
-                <div className="flex items-center gap-4 flex-shrink-0">
-                    <FavoritesSheet favorites={favorites} onToggleFavorite={toggleFavorite} strings={translatedStrings} />
-                    <LanguageSelector onLanguageChange={setLanguage} />
-                </div>
+          <div className="flex-1 flex justify-center px-4">
+            <div className="w-full max-w-2xl flex items-center gap-2">
+              <SearchForm
+                onSearch={handleSearch}
+                isSearching={isLoading && pageMode === 'search'}
+                initialValues={searchQuery ?? undefined}
+                strings={translatedStrings}
+              />
+              <Button
+                variant="outline"
+                className="bg-white"
+                onClick={handleSuggest}
+                disabled={isLoading}
+              >
+                {isLoading && pageMode === 'suggestions' ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                )}
+                {translatedStrings.suggestions}
+              </Button>
             </div>
-        </header>
-        
-        <main className="flex-1 w-full container mx-auto p-6">
-            {results === null ? (
-                 <div className="flex flex-col items-center justify-center text-center h-full max-w-2xl mx-auto pt-20">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Logo className="h-20 w-20" />
-                    </div>
-                    <h1 className="text-3xl md:text-4xl font-semibold text-gray-700 mb-8">{translatedStrings.searchPrompt}</h1>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <FavoritesSheet favorites={favorites} onToggleFavorite={toggleFavorite} strings={translatedStrings} />
+            <LanguageSelector onLanguageChange={setLanguage} />
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 w-full container mx-auto p-6">
+        {results === null ? (
+          <div className="flex flex-col items-center justify-center text-center h-full max-w-2xl mx-auto pt-20">
+             <div className="relative w-48 h-48 mb-8">
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full opacity-20 blur-2xl"></div>
+                <Logo className="h-48 w-48" />
+             </div>
+             <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4">{translatedStrings.searchPrompt}</h1>
+             <p className="text-lg text-gray-500 max-w-md">Your gateway to discovering free treasures in your community.</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-md text-gray-600">
+                {displayQuery} ({sortedResults.length})
+              </p>
+              {pageMode === 'search' && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-600 hidden sm:inline">{translatedStrings.sort}</span>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-auto sm:w-[180px] bg-white">
+                      <SelectValue placeholder={translatedStrings.sortBy} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="relevance">{translatedStrings.relevance}</SelectItem>
+                      <SelectItem value="az">{translatedStrings.az}</SelectItem>
+                      <SelectItem value="za">{translatedStrings.za}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-            ) : (
-                <>
-                    <div className="flex items-center justify-between mb-6">
-                        <p className="text-md text-gray-600">
-                           {displaySearchQuery} ({sortedResults.length})
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-600 hidden sm:inline">{translatedStrings.sort}</span>
-                            <Select value={sortBy} onValueChange={setSortBy}>
-                                <SelectTrigger className="w-auto sm:w-[180px] bg-white">
-                                    <SelectValue placeholder={translatedStrings.sortBy} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="relevance">{translatedStrings.relevance}</SelectItem>
-                                    <SelectItem value="az">{translatedStrings.az}</SelectItem>
-                                    <SelectItem value="za">{translatedStrings.za}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <ResultsList
-                        results={sortedResults}
-                        favorites={favorites}
-                        isLoading={isLoading}
-                        onToggleFavorite={toggleFavorite}
-                        strings={translatedStrings}
-                    />
-                </>
-            )}
-        </main>
+              )}
+            </div>
+            <ResultsList
+              results={sortedResults}
+              favorites={favorites}
+              isLoading={isLoading}
+              onToggleFavorite={toggleFavorite}
+              strings={translatedStrings}
+            />
+          </>
+        )}
+      </main>
     </div>
   );
 }

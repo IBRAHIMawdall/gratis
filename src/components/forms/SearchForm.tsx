@@ -29,7 +29,6 @@ type SearchFormProps = {
   strings: {
     placeholder: string;
     searchButton: string;
-    feelingLucky: string;
   }
 };
 
@@ -46,7 +45,7 @@ export default function SearchForm({ onSearch, isSearching, initialValues, strin
     <div className="w-full">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSearch)} className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
           <FormField
             control={form.control}
             name="description"
@@ -56,14 +55,14 @@ export default function SearchForm({ onSearch, isSearching, initialValues, strin
                   <Input 
                     placeholder={strings.placeholder}
                     {...field} 
-                    className="rounded-full h-12 pl-12 pr-12 text-base bg-white shadow-sm focus:shadow-md"
+                    className="rounded-full h-12 pl-12 pr-12 text-base bg-white shadow-sm hover:shadow-md focus-visible:shadow-md transition-shadow"
                   />
                 </FormControl>
               </FormItem>
             )}
           />
           <Button type="submit" size="icon" disabled={isSearching} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary hover:bg-primary/90">
-             {isSearching ? <Loader2 className="animate-spin" /> : <Search className="text-white"/>}
+             {isSearching ? <Loader2 className="animate-spin" /> : <Search className="text-white h-5 w-5"/>}
           </Button>
           <FormMessage className="pl-4 pt-1 text-xs">
             {form.formState.errors.description?.message}
