@@ -1,6 +1,6 @@
 import React from 'react';
 import { FreeItem } from '@/lib/types';
-import ResultCard from './ResultCard';
+import SearchResult from './ResultCard';
 import ResultCardSkeleton from './ResultCardSkeleton';
 import { Inbox } from 'lucide-react';
 
@@ -19,7 +19,7 @@ const ResultsList: React.FC<ResultsListProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {[...Array(5)].map((_, i) => (
           <ResultCardSkeleton key={i} />
         ))}
@@ -29,18 +29,18 @@ const ResultsList: React.FC<ResultsListProps> = ({
 
   if (results.length === 0 && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-card rounded-lg shadow-md">
-        <Inbox className="w-16 h-16 text-muted-foreground mb-4" />
-        <h3 className="font-headline text-2xl font-semibold">No Results Yet</h3>
-        <p className="text-muted-foreground">Use the search bar above to find free stuff!</p>
+      <div className="flex flex-col items-center justify-center h-full text-center p-8">
+        <Inbox className="w-16 h-16 text-gray-300 mb-4" />
+        <h3 className="text-2xl font-semibold text-gray-700">No Results Found</h3>
+        <p className="text-gray-500">Try adjusting your search terms.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div>
       {results.map((item) => (
-        <ResultCard
+        <SearchResult
           key={item.id}
           item={item}
           isFavorite={favorites.some((fav) => fav.id === item.id)}

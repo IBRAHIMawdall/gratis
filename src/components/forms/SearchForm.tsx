@@ -9,11 +9,9 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Search } from "lucide-react";
 
 const formSchema = z.object({
@@ -28,64 +26,101 @@ const formSchema = z.object({
 type SearchFormProps = {
   onSearch: (values: z.infer<typeof formSchema>) => void;
   isSearching: boolean;
+  initialValues?: z.infer<typeof formSchema>;
 };
 
-export default function SearchForm({ onSearch, isSearching }: SearchFormProps) {
+export default function SearchForm({ onSearch, isSearching, initialValues }: SearchFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialValues || {
       description: "",
       location: "",
     },
   });
 
+  const hasResults = !!initialValues;
+
+  if (hasResults) {
+    return (
+       <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSearch)} className="relative">
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input 
+                      placeholder="Search for free items or services" 
+                      {...field} 
+                      className="rounded-full h-12 pr-12 text-base"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+             <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-transparent hover:bg-gray-200">
+                <Search className="text-[#4285F4]"/>
+            </Button>
+          </form>
+       </Form>
+    )
+  }
+
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">Find Something Free</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSearch)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>I'm looking for...</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., a free couch, guitar lessons" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Near...</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Brooklyn, NY" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Button type="submit" disabled={isSearching} className="w-full">
+    <div className="w-full max-w-2xl">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSearch)} className="space-y-4">
+          <div className="relative flex items-center">
+            <Search className="absolute left-4 text-gray-400" />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="flex-grow">
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., a free couch, guitar lessons"
+                      {...field}
+                      className="rounded-full h-12 pl-12 pr-4 text-base shadow-md focus-visible:ring-blue-500"
+                    />
+                  </FormControl>
+                  <FormMessage className="pl-4"/>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="relative flex items-center">
+             <Search className="absolute left-4 text-gray-400" />
+             <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem className="flex-grow">
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Dubai, UAE"
+                      {...field}
+                      className="rounded-full h-12 pl-12 pr-4 text-base shadow-md focus-visible:ring-blue-500"
+                    />
+                  </FormControl>
+                  <FormMessage className="pl-4" />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex justify-center gap-4 pt-2">
+            <Button type="submit" disabled={isSearching} className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-6 py-2 h-10">
               {isSearching ? (
                 <Loader2 className="animate-spin" />
               ) : (
-                <Search />
+                "Search"
               )}
-              <span className="ml-2">Search</span>
             </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+             <Button type="button" variant="ghost" className="text-gray-700 hover:bg-gray-100">I'm Feeling Lucky</Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }

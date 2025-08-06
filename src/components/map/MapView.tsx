@@ -10,11 +10,11 @@ type MapViewProps = {
   favorites: FreeItem[];
 };
 
-// Define the bounding box for the mock data (New York City area)
-const latMin = 40.5;
-const latMax = 40.9;
-const lngMin = -74.25;
-const lngMax = -73.7;
+// Bounding box for UAE
+const latMin = 22.5;
+const latMax = 26.1;
+const lngMin = 51.6;
+const lngMax = 56.4;
 
 const MapView: React.FC<MapViewProps> = ({ items, favorites }) => {
   const allItems = [...items, ...favorites];
@@ -28,7 +28,7 @@ const MapView: React.FC<MapViewProps> = ({ items, favorites }) => {
 
   return (
     <TooltipProvider>
-      <div className="relative w-full h-full bg-secondary/30 rounded-lg overflow-hidden border">
+      <div className="relative w-full h-full bg-gray-100 rounded-lg overflow-hidden border">
         <div 
             className="absolute inset-0 opacity-20"
             style={{
@@ -36,7 +36,7 @@ const MapView: React.FC<MapViewProps> = ({ items, favorites }) => {
             }}
         />
         <div className="absolute inset-0 flex items-center justify-center">
-            <p className="font-headline text-2xl text-muted-foreground/50 select-none">Map View</p>
+            <p className="font-headline text-2xl text-gray-400 select-none">Map View</p>
         </div>
 
         {uniqueItems.map((item) => {
@@ -50,9 +50,9 @@ const MapView: React.FC<MapViewProps> = ({ items, favorites }) => {
                   style={{ top, left }}
                 >
                   {isFavorite ? (
-                     <Star className="h-6 w-6 text-accent fill-accent animate-pulse" />
+                     <Star className="h-6 w-6 text-yellow-500 fill-yellow-500 animate-pulse" />
                   ) : (
-                    <MapPin className="h-6 w-6 text-primary fill-primary/70" />
+                    <MapPin className="h-6 w-6 text-blue-600 fill-blue-600/70" />
                   )}
                 </div>
               </TooltipTrigger>
