@@ -6,22 +6,15 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 256 256"
     {...props}
  >
-    {/* Smiling G character */}
-    <g transform="translate(20, 40)">
-      <path d="M104.6,33.2C95.4,13.2,74.2,0,50,0C22.4,0,0,22.4,0,50s22.4,50,50,50c24.2,0,45.4-13.2,54.6-33.2" fill="#4285F4"/>
-      <path d="M50,15c19.3,0,35,15.7,35,35S69.3,85,50,85s-35-15.7-35-35S30.7,15,50,15z" fill="#E3F2FD"/>
-      <path d="M67.5,60C61.2,66.3,56,69,50,69s-11.2-2.7-17.5-9C31.2,58.8,30,56.8,30,55c0-4,5-5,10-5s10,1,10,1s5-1,10-1s10,1,10,1s5,1,10,5C80,56.8,78.8,58.8,67.5,60z" fill="#4285F4"/>
-      <circle cx="38" cy="42" r="5" fill="#4285F4"/>
-      <circle cx="62" cy="42" r="5" fill="#4285F4"/>
+    {/* Abstract G + Magnifying glass */}
+    <g transform="translate(10, 20) scale(1.2)">
+        <path d="M58.3,9.2C30.5,9.2,9.2,30.5,9.2,58.3s21.3,49.1,49.1,49.1c13.4,0,25.6-5.4,34.7-14.1l29.4,29.4c3.6,3.6,9.4,3.6,13,0s3.6-9.4,0-13l-29.4-29.4c8.7-9.1,14.1-21.3,14.1-34.7C107.4,30.5,86.1,9.2,58.3,9.2z M58.3,92.6c-19,0-34.3-15.4-34.3-34.3S39.3,24,58.3,24s34.3,15.4,34.3,34.3S77.3,92.6,58.3,92.6z" fill="#4285F4"/>
+        <path d="M58.3,34c-13.4,0-24.3,10.9-24.3,24.3h48.6C82.6,44.9,71.7,34,58.3,34z" fill="#E3F2FD"/>
     </g>
 
     {/* Rest of the text */}
-    <text x="175" y="52%" dominantBaseline="middle" textAnchor="middle" fontSize="90" fontFamily="Poppins, sans-serif" fontWeight="bold">
-      <tspan fill="#34A853">r</tspan>
-      <tspan fill="#FBBC05">a</tspan>
-      <tspan fill="#EA4335">t</tspan>
-      <tspan fill="#4285F4">i</tspan>
-      <tspan fill="#34A853">s</tspan>
+    <text x="178" y="53%" dominantBaseline="middle" textAnchor="middle" fontSize="90" fontFamily="Poppins, sans-serif" fontWeight="bold" fill="#34A853">
+      ratis
     </text>
  </svg>
 );
