@@ -58,8 +58,8 @@ export default function Home() {
   useEffect(() => {
     if (language === 'en') {
         setTranslatedStrings(defaultStrings);
-        if(results) {
-            handleSearch(searchQuery!);
+        if(results && searchQuery) {
+            handleSearch(searchQuery, true);
         }
         return;
     }
@@ -98,7 +98,7 @@ export default function Home() {
 
 
   const translateResults = async (items: FreeItem[], lang: string): Promise<FreeItem[]> => {
-    if (lang === 'en') return items;
+    if (lang === 'en') return items; // Return original if English
     return Promise.all(
         items.map(async (item) => {
             const [translatedTitle, translatedDescription] = await Promise.all([
@@ -115,26 +115,35 @@ export default function Home() {
   };
 
 
-  const handleSearch = (data: { description: string; location: string }) => {
+  const handleSearch = (data: { description: string; location: string }, fromTranslation: boolean = false) => {
     setSearchQuery(data);
     startSearchTransition(async () => {
-      const searchResult = await performSearch(data);
-      if (searchResult.error) {
-        toast({
-          variant: "destructive",
-          title: translatedStrings.searchFailedTitle,
-          description: searchResult.error,
-        });
-        setResults([]);
-      } else {
-        const finalResults = await translateResults(searchResult.items || [], language);
-        setResults(finalResults);
-        if (!finalResults || finalResults.length === 0) {
+      // Only perform search if it's not from a translation call
+      // or if there are no results yet.
+      if (!fromTranslation || !results) {
+        const searchResult = await performSearch(data);
+        if (searchResult.error) {
           toast({
-            title: translatedStrings.noResultsTitle,
-            description: translatedStrings.noResultsDescription,
+            variant: "destructive",
+            title: translatedStrings.searchFailedTitle,
+            description: searchResult.error,
           });
+          setResults([]);
+        } else {
+            const items = searchResult.items || [];
+            const finalResults = await translateResults(items, language);
+            setResults(finalResults);
+            if (items.length === 0) {
+            toast({
+              title: translatedStrings.noResultsTitle,
+              description: translatedStrings.noResultsDescription,
+            });
+          }
         }
+      } else {
+         // Re-translate existing results
+         const finalResults = await translateResults(results, language);
+         setResults(finalResults);
       }
     });
   };
@@ -186,7 +195,7 @@ export default function Home() {
                 <span className="text-[#0F9D58]">i</span>
                 <span className="text-[#DB4437]">s</span>
             </h1>
-           <SearchForm onSearch={handleSearch} isSearching={isSearching || isTranslating} strings={translatedStrings} />
+           <SearchForm onSearch={(data) => handleSearch(data)} isSearching={isSearching || isTranslating} strings={translatedStrings} />
          </main>
       ) : (
         <>
@@ -197,7 +206,7 @@ export default function Home() {
                     </h1>
                     <div className="w-[700px]">
                         <SearchForm 
-                            onSearch={handleSearch} 
+                            onSearch={(data) => handleSearch(data)} 
                             isSearching={isSearching || isTranslating} 
                             initialValues={searchQuery ?? undefined}
                             strings={translatedStrings}
