@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { FreeItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Star, MapPin } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 type SearchResultProps = {
   item: FreeItem;
@@ -13,15 +14,24 @@ type SearchResultProps = {
 
 const SearchResult: React.FC<SearchResultProps> = ({ item, isFavorite, onToggleFavorite }) => {
   return (
-    <div className="h-full flex flex-col group rounded-lg overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200">
-      <div className="relative h-48 w-full overflow-hidden">
-        <Image 
-            src={item.imageUrl || 'https://placehold.co/600x400.png'} 
-            alt={item.title} 
-            data-ai-hint={`${item.title} ${item.location}`}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+    <Card className="h-full flex flex-col group rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border">
+      <div className="relative aspect-square w-full overflow-hidden">
+        <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer">
+          <Image 
+              src={item.imageUrl || 'https://placehold.co/600x400.png'} 
+              alt={item.title} 
+              data-ai-hint={`${item.title} ${item.location}`}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+            <h3 className="text-md font-semibold text-white line-clamp-2">{item.title}</h3>
+            <div className="flex items-center text-sm text-gray-200 mt-1">
+                <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                <span>{item.location}</span>
+            </div>
+          </div>
+        </a>
         <div className="absolute top-2 right-2">
             <Button 
               variant="ghost" 
@@ -34,21 +44,12 @@ const SearchResult: React.FC<SearchResultProps> = ({ item, isFavorite, onToggleF
             </Button>
         </div>
       </div>
-      <div className="p-4 flex-grow flex flex-col">
-        <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="flex-grow">
-          <h3 className="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2">{item.title}</h3>
-        </a>
-        <div className="flex items-center text-sm text-gray-500 mt-2">
-            <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
-            <span>{item.location}</span>
-        </div>
-      </div>
-       <div className="p-4 pt-0 border-t mt-4">
-         <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 hover:underline">
-            Source: {item.source}
-         </a>
-      </div>
-    </div>
+       <CardContent className="p-3">
+         <p className="text-xs text-gray-500">
+            Source: <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{item.source}</a>
+         </p>
+      </CardContent>
+    </Card>
   );
 };
 

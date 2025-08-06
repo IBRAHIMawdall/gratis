@@ -10,7 +10,6 @@ type ResultsListProps = {
   favorites: FreeItem[];
   isLoading: boolean;
   onToggleFavorite: (item: FreeItem) => void;
-  onItemHover: (id: string | null) => void;
   strings: {
     noResultsTitle: string;
     noResultsDescription: string;
@@ -22,15 +21,14 @@ const ResultsList: React.FC<ResultsListProps> = ({
   favorites,
   isLoading,
   onToggleFavorite,
-  onItemHover,
   strings
 }) => {
-  const grid_template = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6";
+  const grid_template = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6";
 
   if (isLoading) {
     return (
       <div className={grid_template}>
-        {[...Array(8)].map((_, i) => (
+        {[...Array(10)].map((_, i) => (
           <ResultCardSkeleton key={i} />
         ))}
       </div>
@@ -52,8 +50,6 @@ const ResultsList: React.FC<ResultsListProps> = ({
       {results.map((item) => (
         <div
             key={item.id}
-            onMouseEnter={() => onItemHover(item.id)}
-            onMouseLeave={() => onItemHover(null)}
         >
             <SearchResult
               item={item}
