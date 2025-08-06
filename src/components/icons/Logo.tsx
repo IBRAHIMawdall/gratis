@@ -7,12 +7,12 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
     {...props}
  >
     <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="120" fontFamily="Poppins, sans-serif" fontWeight="bold">
-      <tspan fill="#4285F4">G</tspan>
-      <tspan fill="#DB4437">r</tspan>
-      <tspan fill="#F4B400">a</tspan>
-      <tspan fill="#4285F4">t</tspan>
-      <tspan fill="#0F9D58">i</tspan>
-      <tspan fill="#DB4437">s</tspan>
+      <tspan fill="#3B82F6">G</tspan>
+      <tspan fill="#10B981">r</tspan>
+      <tspan fill="#F59E0B">a</tspan>
+      <tspan fill="#6366F1">t</tspan>
+      <tspan fill="#84CC16">i</tspan>
+      <tspan fill="#EC4899">s</tspan>
     </text>
  </svg>
 );
