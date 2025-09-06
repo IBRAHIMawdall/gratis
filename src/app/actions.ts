@@ -3,14 +3,14 @@
 import { z } from "zod";
 import { generateSearchQuery } from "@/ai/flows/generate-search-query";
 import { summarizeItemDetails } from "@/ai/flows/summarize-item-details";
-import { mockFreeItems } from "@/lib/data";
+import { getFreeItems, seedDatabase as seedDb } from "@/lib/firebase";
 import { FreeItem } from "@/lib/types";
 import { translateText as translateTextFlow } from "@/ai/flows/translate-text";
 import { suggestItems as suggestItemsFlow } from "@/ai/flows/suggest-items";
 
 const searchSchema = z.object({
   description: z.string().min(3, "Please describe what you're looking for."),
-  location: z.string().min(3, "Please provide a location."),
+  location: z.string(),
 });
 
 export async function performSearch(data: { description: string; location: string }): Promise<{ items?: FreeItem[], error?: string }> {
@@ -20,13 +20,14 @@ export async function performSearch(data: { description: string; location: strin
   }
 
   try {
+    const allItems = await getFreeItems();
+
     // Step 1: Generate a search query from the user's input.
     const { searchQuery } = await generateSearchQuery(data);
 
-    // Step 2: Filter mock data based on the generated search query.
-    // In a real application, this would be a database or API call.
+    // Step 2: Filter items based on the generated search query.
     const keywords = searchQuery.toLowerCase().split(' ').filter(word => word.length > 2);
-    const results = mockFreeItems.filter(item => {
+    const results = allItems.filter(item => {
         const itemText = `${item.title} ${item.description}`.toLowerCase();
         return keywords.some(keyword => itemText.includes(keyword));
     });
@@ -38,6 +39,9 @@ export async function performSearch(data: { description: string; location: strin
     // Step 3: Summarize the details of each found item.
     const summarizedResults = await Promise.all(
       results.map(async (item) => {
+        if (item.description.length < 100) { // Don't summarize short descriptions
+          return item;
+        }
         const { summary } = await summarizeItemDetails({
           itemDetails: item.description,
           sourceUrl: item.sourceUrl,
@@ -74,7 +78,8 @@ export async function translateText(data: { text: string, targetLanguage: string
 
 export async function getSuggestions(favorites: FreeItem[]): Promise<{ items?: FreeItem[], error?: string }> {
   try {
-    const simplifiedItems = mockFreeItems.map(({ id, title, description, location }) => ({ id, title, description, location }));
+    const allItems = await getFreeItems();
+    const simplifiedItems = allItems.map(({ id, title, description, location }) => ({ id, title, description, location }));
     const simplifiedFavorites = favorites.map(({ id, title, description, location }) => ({ id, title, description, location }));
 
     const { suggestedItemIds } = await suggestItemsFlow({
@@ -86,11 +91,14 @@ export async function getSuggestions(favorites: FreeItem[]): Promise<{ items?: F
       return { items: [] };
     }
 
-    const suggestedItems = mockFreeItems.filter(item => suggestedItemIds.includes(item.id));
+    const suggestedItems = allItems.filter(item => suggestedItemIds.includes(item.id));
     
     // Summarize the details for the suggested items
     const summarizedResults = await Promise.all(
       suggestedItems.map(async (item) => {
+         if (item.description.length < 100) { // Don't summarize short descriptions
+          return item;
+        }
         const { summary } = await summarizeItemDetails({
           itemDetails: item.description,
           sourceUrl: item.sourceUrl,
@@ -103,5 +111,17 @@ export async function getSuggestions(favorites: FreeItem[]): Promise<{ items?: F
   } catch (error) {
     console.error("An error occurred during suggestions:", error);
     return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
+
+export async function seedDatabase(): Promise<{ count?: number, error?: string }> {
+  try {
+    const count = await seedDb();
+    return { count };
+  } catch (error) {
+    console.error("Database seeding error:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { error: `Failed to seed database: ${errorMessage}` };
   }
 }

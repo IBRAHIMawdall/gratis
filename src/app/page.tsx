@@ -1,9 +1,8 @@
-
 "use client";
 
 import React, { useState, useTransition, useMemo, useEffect } from "react";
 import { FreeItem } from "@/lib/types";
-import { performSearch, translateText, getSuggestions } from "@/app/actions";
+import { performSearch, translateText, getSuggestions, seedDatabase } from "@/app/actions";
 import SearchForm from "@/components/forms/SearchForm";
 import ResultsList from "@/components/search/ResultsList";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import LanguageSelector from "@/components/LanguageSelector";
 import Logo from "@/components/icons/Logo";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Database } from "lucide-react";
 
 type TranslatedStrings = {
   placeholder: string;
@@ -65,6 +64,8 @@ export default function Home() {
   const [translatedStrings, setTranslatedStrings] = useState<TranslatedStrings>(defaultStrings);
   const [isTranslating, startTranslation] = useTransition();
   const [pageMode, setPageMode] = useState<'search' | 'suggestions'>('search');
+  const [isSeeding, startSeedingTransition] = useTransition();
+
 
   useEffect(() => {
     const storedFavorites = localStorage.getItem("favorites");
@@ -110,7 +111,7 @@ export default function Home() {
     };
 
     translateUI();
-  }, [language]);
+  }, [language, results]);
 
 
   const translateResults = async (items: FreeItem[], lang: string): Promise<FreeItem[]> => {
@@ -178,6 +179,28 @@ export default function Home() {
                 setResults(items);
             }
         }
+    });
+  };
+
+  const handleSeedDatabase = () => {
+    startSeedingTransition(async () => {
+      const result = await seedDatabase();
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "Database Seeding Failed",
+          description: result.error,
+        });
+      } else {
+        toast({
+          title: "Database Seeded",
+          description: `Successfully added ${result.count} items to the database.`,
+        });
+        // Refresh search if there's a query
+        if (searchQuery) {
+          handleSearch(searchQuery);
+        }
+      }
     });
   };
 
@@ -268,6 +291,14 @@ export default function Home() {
              </div>
              <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4">{translatedStrings.searchPrompt}</h1>
              <p className="text-lg text-gray-500 max-w-md">Your gateway to discovering free treasures in your community.</p>
+             <Button onClick={handleSeedDatabase} disabled={isSeeding} className="mt-8">
+                {isSeeding ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Database className="mr-2 h-4 w-4" />
+                )}
+                Seed Database with Sample Data
+              </Button>
           </div>
         ) : (
           <>
