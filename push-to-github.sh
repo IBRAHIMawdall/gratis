@@ -29,8 +29,8 @@ git add .
 echo "Committing changes..."
 git commit -m "$1"
 
-# 3. Push the changes to the 'main' branch on GitHub
+# 3. Push the changes to the 'master' branch on GitHub
 echo "Pushing to GitHub..."
-git push origin main
+git push origin master
 
 echo "✅ Code pushed to GitHub successfully!"
